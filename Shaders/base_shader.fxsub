@@ -66,11 +66,8 @@ float4 ps_model(vs_out i, float vface : VFACE) : COLOR0
     float light_temp = saturate((ndotl - Light_Values.x) * Light_Values.y);
     float3 diffuseCol = fma(light_temp, -DiffuseColor.xyz, light_temp);
     diffuseCol += DiffuseColor.xyz;
-    #ifdef IsNose
-        rampUv.x = NoseRange + -ndotl;
-    #else
-        rampUv.x = ndotl * 0.5 + 0.5;
-    #endif
+
+    rampUv.x = ndotl * 0.5 + 0.5;
     rampUv.y = DiffuseUV;
 
     float3 diffuseRamp = tex2D(RampSampler, rampUv);
