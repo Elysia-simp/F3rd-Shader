@@ -1,0 +1,108 @@
+//includes
+#include <header/header.fxh>
+#include <Shaders/base_tex.fxh>
+#include <includes/common.hlsl>
+//
+
+//base structure
+struct vs_in
+{
+    float4 pos          : POSITION;
+    float3 normal       : NORMAL;
+    float2 uv            : TEXCOORD0;
+    float4 vertexcolor   : TEXCOORD2; 
+};
+
+
+struct vs_out
+{
+    float4 pos          : POSITION;
+    float2 uv           : TEXCOORD0;
+    float4 vertex       : TEXCOORD1;
+    float3 normal       : TEXCOORD2;
+    float3 view         : TEXCOORD3;
+    float4 ppos         : TEXCOORD4; //hgshadow stuff idk if anything else uses ppos
+};
+
+vs_out vs_model ( vs_in i)
+{
+    vs_out o = (vs_out)0; //you're not mentally sane if you write this as INPUT/OUTPUT
+    o.pos = mul(i.pos, mmd_wvp);
+    o.uv = i.uv;
+	o.normal = mul((float3x3) mmd_world, i.normal);
+    o.view = mmd_cameraPosition - mul(i.pos.xyz, (float3x3)mmd_world);
+    o.ppos = o.pos;
+    return o;
+}
+
+float4 ps_model(vs_out i, float vface : VFACE) : COLOR0
+{
+    float2 uv = i.uv;
+    float3 normal = normalize(i.normal / vface);
+    float3 view = normalize(i.view);
+
+    #ifdef Yflip
+        uv.y += 1;
+    #endif
+
+    float4 diffuse = tex2D(diffuseSampler, uv);
+    float4 specularTex = tex2D(SpecularSampler, uv);
+    specularTex.xyz = saturate((specularTex * SpecularMul) * specularTex);
+    float3 rimMask = specularTex.w * RimMaskMul;
+    float2 rampUv;
+    
+    // Fresnel
+    rampUv.x = 1.0 - saturate(dot(normal, view));
+    rampUv.y = FresnelUV;
+    float3 fresnelRamp = tex2D(RampSampler, rampUv) * rimMask;
+
+    // Specular
+    rampUv.x = saturate(dot(normal, normalize(view-light_d)));
+    rampUv.y = SpecularUV;
+    float3 specularRamp = saturate(fma(tex2D(RampSampler, rampUv), specularTex, fresnelRamp));
+
+    // Diffuse
+    float ndotl = dot(normal, -light_d);
+    float light_temp = saturate((ndotl - Light_Values.x) * Light_Values.y);
+    float3 diffuseCol = fma(light_temp, -DiffuseColor.xyz, light_temp);
+    diffuseCol += DiffuseColor.xyz;
+    
+    rampUv.x = ndotl * 0.5 + 0.5;
+    rampUv.y = DiffuseUV;
+    float3 diffuseRamp = tex2D(RampSampler, rampUv);
+    
+    diffuseCol = saturate(diffuseCol - diffuseRamp);
+    diffuseRamp = saturate(fma(diffuseCol, DiffuseRampConst, diffuseRamp));
+    diffuseRamp = fma(diffuseRamp, DiffuseMul, DiffuseAdd);
+    
+    float4 finalColor = float4(saturate(fma(diffuse.xyz * diffuseRamp, diffuse.xyz, specularRamp)), diffuse.w) * egColor;
+    
+    #ifdef AlphaDiscard
+        clip(diffuse.w - 0.1);
+        finalColor.w = 1;
+    #endif
+    
+    return finalColor;
+}
+
+technique model_SS_tech <string MMDPASS = "object_ss"; >
+{
+    pass main
+    {
+        VertexShader = compile vs_3_0 vs_model();
+        PixelShader = compile ps_3_0 ps_model();
+    }
+}
+
+technique model_tech <string MMDPASS = "object"; >
+{
+    pass main
+    {
+        VertexShader = compile vs_3_0 vs_model();
+        PixelShader = compile ps_3_0 ps_model();
+    }
+}
+
+
+technique edge <string MMDPASS = "edge";>{} //FUCK your pmx settings
+technique shadow <string MMDPASS = "shadow";>{}
