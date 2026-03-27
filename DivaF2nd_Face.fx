@@ -12,4 +12,4 @@
 #define RimMaskMul 0.5f
 
 #include <CommonSettings.config>
-#include <shaders/base_shader.fxsub>////
+#include <shaders/DivaF2nd_Shader.fxsub>////
