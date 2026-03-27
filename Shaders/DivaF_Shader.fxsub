@@ -77,7 +77,8 @@ float4 ps_model(vs_out i, float vface : VFACE) : COLOR0
     finalColor.xyz = diffuse * DiffuseRamp;
     finalColor.xyz = fma(finalColor, diffuse, specularRamp);
     finalColor.w = diffuse.w;
-
+    finalColor *= egColor;
+    
     #ifdef AlphaDiscard
         clip(diffuse.w - 0.1);
         finalColor.w = 1;
