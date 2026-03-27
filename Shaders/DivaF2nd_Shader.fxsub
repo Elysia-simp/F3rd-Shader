@@ -21,7 +21,6 @@ struct vs_out
     float4 vertex       : TEXCOORD1;
     float3 normal       : TEXCOORD2;
     float3 view         : TEXCOORD3;
-    float4 ppos         : TEXCOORD4; //hgshadow stuff idk if anything else uses ppos
 };
 
 vs_out vs_model ( vs_in i)
@@ -31,7 +30,6 @@ vs_out vs_model ( vs_in i)
     o.uv = i.uv;
 	o.normal = mul((float3x3) mmd_world, i.normal);
     o.view = mmd_cameraPosition - mul(i.pos.xyz, (float3x3)mmd_world);
-    o.ppos = o.pos;
     return o;
 }
 
@@ -81,7 +79,7 @@ float4 ps_model(vs_out i, float vface : VFACE) : COLOR0
         clip(diffuse.w - 0.1);
         finalColor.w = 1;
     #endif
-    
+
     return finalColor;
 }
 
