@@ -8,8 +8,8 @@
 #define DiffuseAdd float3(0.f, 0.f, 0.f)
 
 
-#define SpecularMul 2.00f
-#define RimMaskMul 0.5f
+#define SpecularMul float3(2.f, 2.f, 2.f)
+#define RimMaskMul float3(0.5f, 0.5f, 0.5f)
 
 #include <CommonSettings.config>
 #include <shaders/DivaF2nd_Shader.fxsub>////

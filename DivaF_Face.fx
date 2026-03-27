@@ -5,8 +5,8 @@
 #define RampFactor 0.15f
 
 
-#define SpecularMul 0.4f
-#define RimMaskMul 0.5f
+#define SpecularMul float3(0.4f, 0.4f, 0.4f)
+#define RimMaskMul float3(0.5f, 0.5f, 0.5f)
 
 #include <CommonSettings.config>
 #include <Shaders/DivaF_Shader.fxsub>//
