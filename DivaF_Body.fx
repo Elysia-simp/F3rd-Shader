@@ -1,3 +1,4 @@
+#define AlphaDiscard
 #define DiffuseMul float3(1.168, 1.168, 1.156)
 #define DiffuseAdd float3(0,0,0)
 #define RampMul float3(1.00, 1.00, 1.00)
