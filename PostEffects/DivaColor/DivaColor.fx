@@ -14,7 +14,7 @@ float time_elapsed : TIME;
 #define FILTER_MODE	MinFilter = POINT; MagFilter = POINT; MipFilter = NONE;
 #define ADDRESSING_MODE	AddressU = BORDER; AddressV = BORDER; BorderColor = float4(0,0,0,0);
 
-float4 ClearColor = {0.45, 0.45, 0.45, 0};
+float4 ClearColor = {0.0, 0.0, 0.0, 0};
 float ClearDepth  = 1.0;
 
 float2 ViewportSize : VIEWPORTPIXELSIZE;
@@ -82,12 +82,12 @@ float4 _builtin_divsq(float4 a, float b) // from rpcs3
 }
 
 
-float brightness = 0.0;
+float brightness = 0;
 
 float4 PS_Color(VS_OUTPUT i) : COLOR
 {
     // Sample textures
-    float4 tex0 = tex2D(ScnSamp2, i.TexCoord.xy);
+    float4 tex0 = pow(tex2D(ScnSamp2, i.TexCoord.xy), 2.2);
     float4 tex1 = tex2D(ScnSamp, i.TexCoord.xy);
     
     // Apply brightness blend
@@ -105,10 +105,10 @@ float4 PS_Color(VS_OUTPUT i) : COLOR
     result.xyz = saturate(result.xyz * 0.8501);
     
     // Calculate luminance
-    float luminance = dot(result.xyz, float3(0.30005, 0.58984, 0.10999));
+    // float luminance = dot(result.xyz, float3(0.30005, 0.58984, 0.10999));
     
     // Output with alpha set to luminance
-    return float4(result.xyz, luminance * tex1.w);
+    return float4(result.xyz, tex1.w);
 }
 
 technique ColorTech <
