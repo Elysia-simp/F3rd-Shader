@@ -1,4 +1,5 @@
-#define P4D_Lights // it's actually in this shader too
+#define Animated float4(1, 0, 2.0f, 1.0f) // XY offset (int) Z: count W: Speed
+//for MEIKO V3 you'll need to remove the other meshes, this just breaks
 #define DiffuseMul float3(1.168, 1.168, 1.156)
 #define DiffuseAdd float3(0,0,0)
 #define RampMul float3(1.00, 1.00, 1.00)

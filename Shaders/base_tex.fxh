@@ -6,7 +6,7 @@ sampler diffuseSampler = sampler_state {texture = < diffuseTexture >; ADDRESSU =
 
 texture SpecularTexture : MATERIALSPHEREMAP<>;
 sampler SpecularSampler = sampler_state 
-{texture = < SpecularTexture >; ADDRESSU = CLAMP; ADDRESSV = CLAMP;};
+{texture = < SpecularTexture >; ADDRESSU = WRAP; ADDRESSV = WRAP;};
 
 texture RampTexture : MATERIALTOONTEXTURE<>;
 sampler RampSampler = sampler_state 

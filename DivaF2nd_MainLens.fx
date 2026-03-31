@@ -1,4 +1,5 @@
-#define P4D_Lights
+#define Animated float4(1, 0, 2.0f, 1.0f) // XY offset (int) Z: count W: Speed
+//for MEIKO V3 you'll need to remove the other meshes, this just breaks
 #define DiffuseMul float3(1.192, 1.172, 1.148)
 #define Light_Values float4(0.35, 6.66667, 0.50, 1.00)
 #define DiffuseColor float4(0, 0, 0, 1.00)
