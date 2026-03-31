@@ -2,7 +2,7 @@
 #include <header/header.fxh>
 #include <Shaders/base_tex.fxh>
 #include <includes/common.hlsl>
-//
+
 
 //base structure
 struct vs_in
@@ -25,9 +25,12 @@ struct vs_out
 
 vs_out vs_model ( vs_in i)
 {
-    vs_out o = (vs_out)0; //you're not mentally sane if you write this as INPUT/OUTPUT
+    vs_out o = (vs_out)0;
     o.pos = mul(i.pos, mmd_wvp);
     o.uv = i.uv;
+    #ifdef P4D_Lights
+        o.uv = AnimatedUvSwap(i.uv);
+    #endif
 	o.normal = mul((float3x3) mmd_world, i.normal);
     o.view = mmd_cameraPosition - mul(i.pos.xyz, (float3x3)mmd_world);
     return o;

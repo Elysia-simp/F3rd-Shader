@@ -1,6 +1,6 @@
 //includes
 #include <header/header.fxh>
-#include <Shaders/base_tex.fxh>
+#include <Shaders/phong_tex.fxh>
 #include <includes/common.hlsl>
 
 
@@ -28,9 +28,6 @@ vs_out vs_model ( vs_in i)
     vs_out o = (vs_out)0;
     o.pos = mul(i.pos, mmd_wvp);
     o.uv = i.uv;
-    #ifdef P4D_Lights
-        o.uv = AnimatedUvSwap(i.uv);
-    #endif
 	o.normal = mul((float3x3) mmd_world, i.normal);
     o.view = mmd_cameraPosition - mul(i.pos.xyz, (float3x3)mmd_world);
     return o;
@@ -46,47 +43,27 @@ float4 ps_model(vs_out i, float vface : VFACE) : COLOR0
         uv.y += 1;
     #endif
     float4 finalColor = 1;
-    float4 diffuse = tex2D(diffuseSampler, uv);
-    float4 specularTex = tex2D(SpecularSampler, uv);
+    float3 cube = texCUBE(CubeSampler, reflect(normal, view));
+    float ndotl = saturate(dot(normal, -light_d));
+    float ndotv = saturate(dot(normal, view));
+    float ndotvtemp = saturate(dot(normal, view) * 2);
 
-    float2 rampUv;
-    float ndotl = dot(normal, -light_d);
-    float ndotv = 1 - dot(normal, view);
-    float ndoth = saturate(dot(normal, normalize(view - light_d)));
-
-    //Diffuse
-    float temp;
-
-    rampUv.x = (ndotl / 2) + 0.5f;
-    temp = rampUv.x - 0.5f;
-    temp = saturate(temp * 3.33f);
-
-    rampUv.y = DiffuseUV;
-    float3 DiffuseRamp = tex2D(RampSampler, rampUv);
-    float3 temp2 = fma(temp, -RampMul, temp) + RampAdd;
-    DiffuseRamp.xyz = fma(lerp(DiffuseRamp, temp2, RampFactor), DiffuseMul, DiffuseAdd);
-
-    //Specular
-    specularTex.xyz = pow(specularTex, 2) * SpecularMul;
-    rampUv.x = saturate(ndotv);
-    rampUv.y = FresnelUV;
-
-    float3 Fresnel = tex2D(RampSampler, rampUv.xy) * (specularTex.w * RimMaskMul);
-    rampUv.x = ndoth;
-    rampUv.y = SpecularUV;
-    float3 specularRamp = tex2D(RampSampler, rampUv);
+    float temp = saturate(-ndotv + FresnelStrength);
+    float Fresnel = pow(temp, FresnelPower); 
     
-    specularRamp.xyz = saturate(fma(specularRamp, specularTex.xyz, Fresnel));
-    finalColor.xyz = diffuse * DiffuseRamp;
-    finalColor.xyz = fma(finalColor, diffuse, specularRamp);
-    finalColor.w = diffuse.w;
-    finalColor *= egColor;
-    
-    #ifdef AlphaDiscard
-        clip(diffuse.w - 0.1);
-        finalColor.w = 1;
-    #endif
+    float3 Phong = fma(ndotl, PhongColorMul, PhongColorAdd);
 
+
+    float4 diffuse = tex2D(diffuseSampler, i.uv);
+    diffuse.xyz *= fma(Phong, egColor.a * AlphaInfluence, AlphaInfluenceAdd);
+
+    temp = fma(Fresnel, FresnelStrengths.x, FresnelStrengths.y);
+    temp = saturate(temp * FresnelStrengths2.x);
+    temp = saturate(temp * FresnelStrengths2.y);
+
+    cube = (cube * temp) * cube;
+    finalColor.xyz = fma(diffuse, Phong, cube) * egColor.xyz;
+    finalColor.w = diffuse.w * ndotv;
     return finalColor;
 }
 
